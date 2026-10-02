@@ -23,11 +23,11 @@ dp = Dispatcher()
 def now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-async def db():
-    return await aiosqlite.connect(DB)
+def db():
+    return aiosqlite.connect(DB)
 
 async def init_db():
-    async with await db() as c:
+    async with db() as c:
         await c.executescript("""
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY,
@@ -75,7 +75,7 @@ async def init_db():
         await c.commit()
 
 async def get_user(uid):
-    async with await db() as c:
+    async with db() as c:
         cur = await c.execute("SELECT * FROM users WHERE id=?", (uid,))
         return await cur.fetchone()
 
@@ -87,7 +87,7 @@ async def ensure_user(message: Message, referrer=None):
     referred_by = None
     if referrer and referrer != uid and await get_user(referrer):
         referred_by = referrer
-    async with await db() as c:
+    async with db() as c:
         await c.execute(
             "INSERT INTO users(id,username,first_name,referred_by,created_at) VALUES(?,?,?,?,?)",
             (uid, message.from_user.username, message.from_user.first_name, referred_by, now())
